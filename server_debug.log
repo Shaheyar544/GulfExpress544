@@ -1,0 +1,162 @@
+
+> rest-express@1.0.0 dev
+> cross-env NODE_ENV=development tsx --watch server/index.ts
+
+2026-01-29 18:15:17 [INFO]: [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+Error fetching config google_analytics_id from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config google_verification_tag from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config adsense_publisher_id from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config generic_verification_tag from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config whatsapp_number from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config contact_address from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config contact_phone from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config contact_email from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config working_hours from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config tracking_number_pattern from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+GET /api/settings/integrations - Returned Pattern: undefined
+2026-01-29 18:15:37 [INFO]: [express] GET /api/settings/integrations 304 in 3168ms :: {"googleAnalyticsId":"","googleVerificationTag":"","adsensePublisherId":"","genericVerificationTag":"","whatsappNumber":"","contactAddress":"","contactPhone":"","contactEmail":"","workingHours":"","trackingNumberPattern":""}
+[2026-01-29T14:17:07.809Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Listen' stream 0x3cba514e error. Code: 1 Message: 1 CANCELLED: Disconnecting idle stream. Timed out waiting for new targets.
+POST /api/settings/integrations - Saving Pattern: GC-UAE-{year}-{random}
+[2026-01-29T14:17:17.086Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Write' stream 0x3cba514f error. Code: 7 Message: 7 PERMISSION_DENIED: Missing or insufficient permissions.
+Error saving config tracking_number_pattern to Firebase: [FirebaseError: 7 PERMISSION_DENIED: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+POST /api/settings/integrations - Saved Pattern successfully
+POST /api/settings/integrations - Response sent
+2026-01-29 18:17:17 [INFO]: [express] POST /api/settings/integrations 200 in 510ms :: {"success":true,"message":"Settings saved successfully"}
+[2026-01-29T14:17:27.795Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Write' stream 0x3cba5150 error. Code: 7 Message: 7 PERMISSION_DENIED: Missing or insufficient permissions.
+Error saving config google_analytics_id to Firebase: [FirebaseError: 7 PERMISSION_DENIED: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+[2026-01-29T14:17:28.313Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Write' stream 0x3cba5151 error. Code: 7 Message: 7 PERMISSION_DENIED: Missing or insufficient permissions.
+Error saving config google_verification_tag to Firebase: [FirebaseError: 7 PERMISSION_DENIED: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+[2026-01-29T14:17:28.873Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Write' stream 0x3cba5152 error. Code: 7 Message: 7 PERMISSION_DENIED: Missing or insufficient permissions.
+Error saving config adsense_publisher_id to Firebase: [FirebaseError: 7 PERMISSION_DENIED: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+[2026-01-29T14:17:29.365Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Write' stream 0x3cba5153 error. Code: 7 Message: 7 PERMISSION_DENIED: Missing or insufficient permissions.
+Error saving config generic_verification_tag to Firebase: [FirebaseError: 7 PERMISSION_DENIED: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+POST /api/settings/integrations - Saving Pattern: GE{month}{random}{day}AE 
+[2026-01-29T14:17:29.858Z]  @firebase/firestore: Firestore (12.8.0): GrpcConnection RPC 'Write' stream 0x3cba5154 error. Code: 7 Message: 7 PERMISSION_DENIED: Missing or insufficient permissions.
+Error saving config tracking_number_pattern to Firebase: [FirebaseError: 7 PERMISSION_DENIED: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+POST /api/settings/integrations - Saved Pattern successfully
+POST /api/settings/integrations - Response sent
+2026-01-29 18:17:29 [INFO]: [express] POST /api/settings/integrations 200 in 2601ms :: {"success":true,"message":"Settings saved successfully"}
+Error fetching config google_analytics_id from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config google_verification_tag from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config adsense_publisher_id from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config generic_verification_tag from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config whatsapp_number from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config contact_address from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config contact_phone from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config contact_email from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config working_hours from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+Error fetching config tracking_number_pattern from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+GET /api/settings/integrations - Returned Pattern: GE{month}{random}{day}AE 
+2026-01-29 18:17:32 [INFO]: [express] GET /api/settings/integrations 200 in 2625ms :: {"googleAnalyticsId":"","googleVerificationTag":"","adsensePublisherId":"","genericVerificationTag":"","whatsappNumber":"","contactAddress":"","contactPhone":"","contactEmail":"","workingHours":"","trackingNumberPattern":"GE{month}{random}{day}AE "}
+Error fetching config tracking_number_pattern from Firebase: [FirebaseError: Missing or insufficient permissions.] {
+  code: 'permission-denied',
+  customData: undefined,
+  toString: [Function (anonymous)]
+}
+2026-01-29 18:17:35 [INFO]: [express] GET /api/shipments/generate-tracking-number 200 in 258ms :: {"trackingNumber":"GE01224329AE "}

@@ -1,0 +1,272 @@
+Below is a **FULL, COMPREHENSIVE, PROFESSIONAL PROMPT** you can copy–paste into *any AI Website Builder* (Wix AI, Framer AI, TeleportHQ AI, Durable AI, 10Web AI, Bubble AI, etc.).
+
+This prompt gives the AI **branding, pages, design system, color palette, content, structure, features, user flows, SEO, and business logic** — everything needed to generate a complete courier website for **Gulf Courier (UAE)**.
+
+---
+
+# ✅ **ULTRA-DETAILED AI WEBSITE GENERATION PROMPT (Copy–Paste)**
+
+**Build a complete, fully functional, modern courier and logistics website for the company “Gulf Courier.”
+The company is based in the United Arab Emirates and offers domestic UAE shipping, GCC shipping, and international courier services.
+Use the instructions below to design the entire website.**
+
+---
+
+## **📌 1. BRAND IDENTITY**
+
+**Company Name:** Gulf Courier
+**Industry:** Courier, Logistics, Transportation
+**Location:** United Arab Emirates (UAE)
+**Operating Regions:**
+
+* UAE to UAE
+* UAE to GCC countries (Saudi Arabia, Qatar, Oman, Bahrain, Kuwait)
+* UAE to International countries
+
+**Brand Style:**
+
+* Modern
+* Professional
+* Trust-Focused
+* Clean minimal layout
+* Rounded cards and soft shadows
+* Large typography
+* Smart spacing
+* High-end futuristic design
+
+**Color Palette:**
+
+* **Primary:** Purple Gradient (#4B2EFF → #A767FF)
+* **Secondary:** White, Off-White, Soft Gray
+* **Accent:** Neon Blue / Light Sky Blue
+* **Background Styles:** Minimal gradients + soft shapes
+
+**Logo:**
+
+* Use a **purple gradient logo** for “Gulf Courier”
+* Modern courier icon
+* Clean sans-serif typography
+
+---
+
+## **📌 2. HOMEPAGE STRUCTURE (IMPORTANT)**
+
+Create a visually premium homepage with the following sections:
+
+### **1. Hero Section**
+
+* Full-width
+* Purple gradient background
+* Big courier hero image (delivery truck, rider, or parcel visuals)
+* Headline: **“Fast. Reliable. Global. Your UAE Delivery Partner.”**
+* Subtext: “Domestic, GCC & International courier services with same-day and next-day delivery.”
+* Buttons:
+
+  * “Book a Shipment”
+  * “Get a Quotation”
+  * “Track Shipment”
+
+### **2. Service Highlights**
+
+Show 4 cards:
+
+* **Same Day Delivery (UAE)**
+* **Next Day Delivery (UAE & GCC)**
+* **Freight & Cargo (Air / Road / Sea)**
+* **International Express Shipping**
+
+Each card must have icons, subtitles, and smooth hover animations.
+
+### **3. Real-Time Shipment Tracking**
+
+Include a tracking number field.
+Button: “Track Now”
+
+### **4. Pickup Locations**
+
+Interactive map + list of UAE pickup and drop-off branches.
+Add icons for: Abu Dhabi, Dubai, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain.
+
+### **5. Pricing / Quotation Section**
+
+Add a **Quotation Form** with fields:
+
+* Sender name
+* Sender city
+* Receiver country
+* Shipment type (Documents / Parcels / Freight)
+* Weight
+* Dimensions
+* Pickup required? (Yes/No)
+* Preferred delivery mode (same day, next day, express, economy)
+* Phone number
+* Email
+
+Button: **“Get Instant Quote”**
+
+### **6. Why Choose Gulf Courier?**
+
+Short bullets:
+
+* Reliable Delivery Network
+* Real-Time Tracking
+* Experienced Operations Team
+* GCC + International Reach
+* Affordable Shipping Rates
+* 24/7 Support
+
+### **7. Testimonials**
+
+3–6 customer reviews with profile avatars.
+
+### **8. Call-to-Action**
+
+Large CTA block:
+**“Ship Smarter With Gulf Courier. Start Today.”**
+Buttons: Book Shipment / Contact Support
+
+---
+
+## **📌 3. WEBSITE PAGES REQUIRED**
+
+Generate all pages fully with real text, images, and forms.
+
+### **📄 1. Home Page**
+
+(as structured above)
+
+### **📄 2. About Us Page**
+
+Sections:
+
+* Company Story
+* Mission
+* Vision
+* Coverage Map
+* Team Photos
+* Why Gulf Courier is Trusted
+
+### **📄 3. Services Page**
+
+With sub-sections:
+
+* UAE Same Day Delivery
+* UAE Next Day Delivery
+* GCC Express
+* International Courier
+* Freight & Cargo (Air, Road, Sea)
+* E-commerce Fulfillment
+* Corporate Shipping Solutions
+
+### **📄 4. Pickup Locations Page**
+
+Map + addresses + timings for all UAE centers.
+
+### **📄 5. Track Shipment Page**
+
+Tracking form + shipment status mock UI.
+
+### **📄 6. Quotation Page**
+
+Full quote form with price estimate.
+
+### **📄 7. Contact Page**
+
+* Phone numbers
+* WhatsApp
+* Email
+* Address
+* Map
+* Quick contact form
+
+### **📄 8. Blog Page (Optional)**
+
+Write 5 sample courier-related blogs.
+
+---
+
+## **📌 4. REQUIRED FEATURES**
+
+The website must include the following:
+
+### **✔ Shipment Tracking System (UI Mock)**
+
+Input field → status card with:
+
+* Shipment ID
+* Current Status
+* Last Location
+* Estimated Delivery Time
+
+### **✔ Shipment Booking Form**
+
+Fields for sending & receiving details, weight, payment method, pickup request.
+
+### **✔ Quotation System**
+
+Dynamic form with calculated results or static estimate.
+
+### **✔ Pickup Location Finder**
+
+Interactive map + dropdown filters.
+
+### **✔ Multi-Step Forms (if supported)**
+
+### **✔ WhatsApp Button**
+
+Floating WhatsApp chat for instant support.
+
+### **✔ Live Chat (if builder supports it)**
+
+### **✔ Newsletter Subscription**
+
+---
+
+## **📌 5. DESIGN REQUIREMENTS**
+
+* Purple gradient theme
+* Rounded UI
+* Big bold typography
+* Smooth hover animations
+* Glassmorphism cards
+* Subtle shadows
+* Clean icons
+* Balanced white space
+* Modern courier illustrations
+
+---
+
+## **📌 6. SEO REQUIREMENTS**
+
+Generate optimized SEO for all pages:
+
+* Title tags
+* Meta descriptions
+* OG images
+* Schema markup (organization + services)
+* Sitemap
+* Fast loading images
+
+Keywords to include:
+
+* Courier UAE
+* UAE delivery services
+* GCC courier
+* International shipping UAE
+* Same day delivery Dubai
+* Freight service UAE
+
+---
+
+## **📌 7. PERFORMANCE REQUIREMENTS**
+
+* Fully responsive
+* Mobile-first
+* Lightweight images
+* Fast animations
+* Clean layouts
+
+---
+
+# 🔥 **END OF PROMPT**
+
