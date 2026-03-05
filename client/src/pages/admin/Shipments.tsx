@@ -30,8 +30,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Shipment {
   id: string;
@@ -56,6 +58,20 @@ export default function Shipments() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [shipmentToDelete, setShipmentToDelete] = useState<string | null>(null);
+
+  // Receipt Generation Modal State
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+  const [receiptShipment, setReceiptShipment] = useState<Shipment | null>(null);
+  const [receiptForm, setReceiptForm] = useState({
+    courierAmount: "",
+    paymentMethod: "Cash",
+    paymentRef: "",
+    discountPercent: "0",
+    customerEmail: "",
+    notes: ""
+  });
+  const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -133,6 +149,84 @@ export default function Shipments() {
         description: "Failed to delete shipment",
         variant: "destructive",
       });
+    }
+  };
+
+  const openReceiptModal = (shipment: Shipment) => {
+    setReceiptShipment(shipment);
+    setReceiptForm({
+      courierAmount: "",
+      paymentMethod: "Cash",
+      paymentRef: `TXN-${Date.now()}`,
+      discountPercent: "0",
+      customerEmail: shipment.senderEmail || "",
+      notes: ""
+    });
+    setReceiptModalOpen(true);
+  };
+
+  const handleGenerateReceipt = async () => {
+    if (!receiptShipment || !receiptShipment.trackingId) return;
+
+    // Ensure amount is valid
+    const amount = parseFloat(receiptForm.courierAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid courier amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingReceipt(true);
+    try {
+      const response = await fetch("/api/receipts/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": "GE-ADMIN-KEY-TEMP", // Handled server-side usually or via session auth
+        },
+        body: JSON.stringify({
+          tracking_id: receiptShipment.trackingId,
+          payment_method: receiptForm.paymentMethod,
+          payment_ref: receiptForm.paymentRef,
+          courier_amount: amount,
+          discount_percent: parseFloat(receiptForm.discountPercent) || 0,
+          notes: receiptForm.notes,
+          customer_email: receiptForm.customerEmail,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate receipt");
+      }
+
+      toast({
+        title: "Receipt Generated",
+        description: `Receipt ${data.receipt_number} created successfully.`,
+        variant: "default",
+      });
+
+      setReceiptModalOpen(false);
+      fetchShipments(); // Refresh list to show updated status
+
+      // Optionally auto-download the PDF
+      if (data.pdf_url) {
+        window.open(data.pdf_url, "_blank");
+      }
+
+    } catch (error: any) {
+      console.error("Receipt generation error:", error);
+      toast({
+        title: "Generation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingReceipt(false);
     }
   };
 
@@ -249,20 +343,31 @@ export default function Shipments() {
                   </TableCell>
                   <TableCell>{getStatusBadge(shipment.status || "pending")}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant={shipment.receiptGenerated ? "outline" : "default"}
+                        size="sm"
+                        onClick={() => openReceiptModal(shipment)}
+                        className={shipment.receiptGenerated ? "text-purple-600 border-purple-600 hover:bg-purple-50" : "bg-purple-600 hover:bg-purple-700 text-white"}
+                        title={shipment.receiptGenerated ? "Regenerate Receipt" : "Generate Receipt"}
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        {shipment.receiptGenerated ? "Receipt" : "Generate"}
+                      </Button>
                       <Link href={`/admin/shipments/${shipment.id}`}>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" title="View">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
                       <Link href={`/admin/shipments/${shipment.id}/edit`}>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" title="Edit">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
                       <Button
                         variant="ghost"
                         size="icon"
+                        title="Delete"
                         onClick={() => {
                           setShipmentToDelete(shipment.id);
                           setDeleteDialogOpen(true);
@@ -296,6 +401,121 @@ export default function Shipments() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Generate Receipt Modal */}
+      <Dialog open={receiptModalOpen} onOpenChange={setReceiptModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Generate VAT Receipt</DialogTitle>
+          </DialogHeader>
+          {receiptShipment && (
+            <div className="grid gap-4 py-4">
+              <div className="bg-slate-50 p-3 rounded-md text-sm mb-2 border">
+                <div className="flex justify-between mb-1">
+                  <span className="text-slate-500">Tracking:</span>
+                  <span className="font-mono font-medium text-purple-700">{receiptShipment.trackingId}</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-slate-500">Customer:</span>
+                  <span className="font-medium">{receiptShipment.senderName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Route:</span>
+                  <span className="font-medium">{receiptShipment.originEmirate} → {receiptShipment.destinationEmirate}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="amount" className="text-right">
+                  Amount (<span className="text-xs text-slate-500">inc VAT</span>)*
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
+                  className="col-span-3"
+                  value={receiptForm.courierAmount}
+                  onChange={(e) => setReceiptForm({ ...receiptForm, courierAmount: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="payment" className="text-right">
+                  Payment
+                </Label>
+                <Select
+                  value={receiptForm.paymentMethod}
+                  onValueChange={(val) => setReceiptForm({ ...receiptForm, paymentMethod: val })}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cash">Cash</SelectItem>
+                    <SelectItem value="Credit Card">Credit Card</SelectItem>
+                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="COD">Cash on Delivery</SelectItem>
+                    <SelectItem value="Online Payment">Online Payment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="ref" className="text-right text-xs">
+                  Reference
+                </Label>
+                <Input
+                  id="ref"
+                  placeholder="TXN-..."
+                  className="col-span-3"
+                  value={receiptForm.paymentRef}
+                  onChange={(e) => setReceiptForm({ ...receiptForm, paymentRef: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="discount" className="text-right text-xs">
+                  Discount %
+                </Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  className="col-span-3"
+                  value={receiptForm.discountPercent}
+                  onChange={(e) => setReceiptForm({ ...receiptForm, discountPercent: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right text-xs">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="customer@email.com"
+                  className="col-span-3"
+                  value={receiptForm.customerEmail}
+                  onChange={(e) => setReceiptForm({ ...receiptForm, customerEmail: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReceiptModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateReceipt}
+              disabled={isGeneratingReceipt || !receiptForm.courierAmount}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {isGeneratingReceipt ? "Generating..." : "🧾 Generate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

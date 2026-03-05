@@ -11,6 +11,7 @@ import { Save } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IntegrationsSettings from "@/components/admin/IntegrationsSettings";
 import ContactSettings from "@/components/admin/ContactSettings";
+import CompanyVATSettings from "@/components/admin/CompanyVATSettings";
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
@@ -85,6 +86,7 @@ export default function Settings() {
           <TabsTrigger value="email">Email Templates</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="contact">Contact Info</TabsTrigger>
+          <TabsTrigger value="company_vat">Company & VAT</TabsTrigger>
         </TabsList>
 
         <TabsContent value="delivery" className="space-y-4">
@@ -209,6 +211,10 @@ export default function Settings() {
 
         <TabsContent value="contact" className="space-y-4">
           <ContactSettings />
+        </TabsContent>
+
+        <TabsContent value="company_vat" className="space-y-4">
+          <CompanyVATSettings />
         </TabsContent>
       </Tabs>
     </div>

@@ -13,6 +13,7 @@ import Track from "@/pages/Track";
 import Quotation from "@/pages/Quotation";
 import Contact from "@/pages/Contact";
 import Book from "@/pages/Book";
+import VerifyReceipt from "@/pages/VerifyReceipt";
 import NotFound from "@/pages/not-found";
 import TrackingScripts from "@/components/TrackingScripts";
 import AdSenseScript from "@/components/AdSenseScript";
@@ -21,6 +22,7 @@ import AdSenseScript from "@/components/AdSenseScript";
 import AdminLogin from "@/pages/admin/Login";
 import Dashboard from "@/pages/admin/Dashboard";
 import Shipments from "@/pages/admin/Shipments";
+import Receipts from "@/pages/admin/Receipts";
 import ShipmentForm from "@/pages/admin/ShipmentForm";
 import ShipmentDetail from "@/pages/admin/ShipmentDetail";
 import Quotations from "@/pages/admin/Quotations";
@@ -60,6 +62,12 @@ function Router() {
       <Route path="/admin/shipments">
         <AdminRouteWrapper>
           <Shipments />
+        </AdminRouteWrapper>
+      </Route>
+
+      <Route path="/admin/receipts">
+        <AdminRouteWrapper>
+          <Receipts />
         </AdminRouteWrapper>
       </Route>
 
@@ -123,6 +131,7 @@ function Router() {
       <Route path="/services" component={Services} />
       <Route path="/locations" component={Locations} />
       <Route path="/track" component={Track} />
+      <Route path="/verify/:receiptNumber" component={VerifyReceipt} />
       <Route path="/quotation" component={Quotation} />
       <Route path="/contact" component={Contact} />
       <Route path="/book" component={Book} />
