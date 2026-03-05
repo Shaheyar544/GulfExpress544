@@ -83,15 +83,22 @@ app.use(
   })
 );
 
-// 6. CSRF Protection
+// 6. CSRF Protection — skipped for /api/v1/* (protected by API key instead)
 const csrfProtection = csurf({ cookie: true });
-app.use(csrfProtection as any);
+app.use((req, res, next) => {
+  // External API routes use X-API-Key header auth — no CSRF needed
+  if (req.path.startsWith("/api/v1/")) {
+    return next();
+  }
+  return (csrfProtection as any)(req, res, next);
+});
 
 // 7. Routes (CSRF Token & Auth)
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 app.use(authRoutes);
+
 
 // 8. CSRF Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
