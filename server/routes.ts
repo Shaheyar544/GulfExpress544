@@ -460,6 +460,95 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================================
+  // Alias routes — /api/shipments (without /v1/) for OrderFlow Pro
+  // Some OrderFlow Pro builds call /api/shipments directly
+  // ============================================================
+
+  app.post("/api/shipments", apiKeyMiddleware, async (req, res) => {
+    // Delegate to the same handler logic as /api/v1/shipments
+    const {
+      sender_name, sender_phone, sender_address,
+      receiver_name, receiver_phone, receiver_address,
+      origin_emirate, destination_emirate,
+      service_type, parcel_weight, amount_paid, notes,
+      shipment_type, linked_order_id, item_name, item_value,
+    } = req.body;
+
+    if (!sender_name || !receiver_name || !origin_emirate || !destination_emirate || !service_type) {
+      return res.status(400).json({ error: "Missing required fields: sender_name, receiver_name, origin_emirate, destination_emirate, service_type" });
+    }
+
+    try {
+      const { trackingId, shipmentId } = await (storage as any).createApiShipment({
+        senderName: sender_name,
+        senderPhone: sender_phone,
+        senderAddress: sender_address,
+        receiverName: receiver_name,
+        receiverPhone: receiver_phone,
+        receiverAddress: receiver_address,
+        originEmirate: origin_emirate,
+        destinationEmirate: destination_emirate,
+        serviceType: service_type,
+        parcelWeight: parcel_weight,
+        amountPaid: amount_paid,
+        notes,
+        shipmentMode: shipment_type === "return" ? "return" : "standard",
+        linkedOrderId: linked_order_id,
+        itemName: item_name,
+        itemValue: item_value,
+      });
+      return res.status(201).json({
+        success: true,
+        tracking_id: trackingId,
+        shipment_id: shipmentId,
+        status: "pending",
+        created_at: new Date().toISOString(),
+        tracking_url: `https://gulfexpress.org/track?id=${trackingId}`,
+      });
+    } catch (error) {
+      console.error("[API alias] Error creating shipment:", error);
+      return res.status(500).json({ error: "Failed to create shipment" });
+    }
+  });
+
+  app.get("/api/shipments/:trackingId", apiKeyMiddleware, async (req, res) => {
+    try {
+      const { trackingId } = req.params;
+      const q = query(collection(db, "shipments"), where("trackingId", "==", trackingId));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        const q2 = query(collection(db, "shipments"), where("trackingNumber", "==", trackingId));
+        const snap2 = await getDocs(q2);
+        if (snap2.empty) return res.status(404).json({ error: "Shipment not found" });
+        const d2 = snap2.docs[0];
+        return res.json({ success: true, shipment: { id: d2.id, ...d2.data() } });
+      }
+      const d = snap.docs[0];
+      return res.json({ success: true, shipment: { id: d.id, ...d.data() } });
+    } catch (error) {
+      return res.status(500).json({ error: "Failed to fetch shipment" });
+    }
+  });
+
+  app.patch("/api/shipments/:trackingId/status", apiKeyMiddleware, async (req, res) => {
+    try {
+      const { trackingId } = req.params;
+      const { status } = req.body;
+      if (!status) return res.status(400).json({ error: "Missing required field: status" });
+      const q = query(collection(db, "shipments"), where("trackingId", "==", trackingId));
+      const snap = await getDocs(q);
+      if (snap.empty) return res.status(404).json({ error: "Shipment not found" });
+      await updateDoc(snap.docs[0].ref, { status });
+      try {
+        await updateDoc(doc(db, "publicTrackingData", trackingId), { status, updatedAt: new Date() });
+      } catch (_) { /* non-critical */ }
+      return res.json({ success: true, tracking_id: trackingId, status });
+    } catch (error) {
+      return res.status(500).json({ error: "Failed to update status" });
+    }
+  });
+
   return httpServer;
 }
 
