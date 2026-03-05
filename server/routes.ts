@@ -4,7 +4,9 @@ import { storage, calculatePrice, getEstimatedDelivery } from "./storage";
 import { insertQuotationSchema, insertContactMessageSchema, insertBookingSchema, insertNewsletterSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./firebase";
-import { doc, getDoc, collection, getDocs, query } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where, updateDoc, orderBy, limit } from "firebase/firestore";
+import { apiKeyMiddleware } from "./middleware/apiKeyMiddleware";
+
 
 export async function registerRoutes(
   httpServer: Server,
@@ -333,6 +335,128 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error generating tracking number:", error);
       res.status(500).json({ message: "Failed to generate tracking number" });
+    }
+  });
+
+  // ============================================================
+  // External API v1 — protected by GULF_EXPRESS_API_KEY header
+  // Used by OrderFlow Pro to create and track shipments remotely
+  // ============================================================
+
+  // POST /api/v1/shipments — Create a shipment (standard or return)
+  app.post("/api/v1/shipments", apiKeyMiddleware, async (req, res) => {
+    try {
+      const {
+        sender_name, sender_phone, sender_address,
+        receiver_name, receiver_phone, receiver_address,
+        origin_emirate, destination_emirate,
+        service_type, parcel_weight, amount_paid, notes,
+        shipment_type, linked_order_id, item_name, item_value,
+      } = req.body;
+
+      if (!sender_name || !receiver_name || !origin_emirate || !destination_emirate || !service_type) {
+        return res.status(400).json({ error: "Missing required fields: sender_name, receiver_name, origin_emirate, destination_emirate, service_type" });
+      }
+
+      const { trackingId, shipmentId } = await (storage as any).createApiShipment({
+        senderName: sender_name,
+        senderPhone: sender_phone,
+        senderAddress: sender_address,
+        receiverName: receiver_name,
+        receiverPhone: receiver_phone,
+        receiverAddress: receiver_address,
+        originEmirate: origin_emirate,
+        destinationEmirate: destination_emirate,
+        serviceType: service_type,
+        parcelWeight: parcel_weight,
+        amountPaid: amount_paid,
+        notes,
+        shipmentMode: shipment_type === "return" ? "return" : "standard",
+        linkedOrderId: linked_order_id,
+        itemName: item_name,
+        itemValue: item_value,
+      });
+
+      return res.status(201).json({
+        success: true,
+        tracking_id: trackingId,
+        shipment_id: shipmentId,
+        status: "pending",
+        created_at: new Date().toISOString(),
+        tracking_url: `https://gulfexpress.org/track?id=${trackingId}`,
+      });
+    } catch (error) {
+      console.error("[API v1] Error creating shipment:", error);
+      return res.status(500).json({ error: "Failed to create shipment" });
+    }
+  });
+
+  // GET /api/v1/shipments — List recent shipments (last 50)
+  app.get("/api/v1/shipments", apiKeyMiddleware, async (_req, res) => {
+    try {
+      const q = query(collection(db, "shipments"), orderBy("createdAt", "desc"), limit(50));
+      const snap = await getDocs(q);
+      const shipments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      return res.json({ success: true, shipments });
+    } catch (error) {
+      console.error("[API v1] Error listing shipments:", error);
+      return res.status(500).json({ error: "Failed to list shipments" });
+    }
+  });
+
+  // GET /api/v1/shipments/:trackingId — Get shipment by tracking ID
+  app.get("/api/v1/shipments/:trackingId", apiKeyMiddleware, async (req, res) => {
+    try {
+      const { trackingId } = req.params;
+      const q = query(collection(db, "shipments"), where("trackingId", "==", trackingId));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        // Also try trackingNumber field for backwards compat
+        const q2 = query(collection(db, "shipments"), where("trackingNumber", "==", trackingId));
+        const snap2 = await getDocs(q2);
+        if (snap2.empty) {
+          return res.status(404).json({ error: "Shipment not found" });
+        }
+        const d2 = snap2.docs[0];
+        return res.json({ success: true, shipment: { id: d2.id, ...d2.data() } });
+      }
+      const d = snap.docs[0];
+      return res.json({ success: true, shipment: { id: d.id, ...d.data() } });
+    } catch (error) {
+      console.error("[API v1] Error fetching shipment:", error);
+      return res.status(500).json({ error: "Failed to fetch shipment" });
+    }
+  });
+
+  // PATCH /api/v1/shipments/:trackingId/status — Update shipment status
+  app.patch("/api/v1/shipments/:trackingId/status", apiKeyMiddleware, async (req, res) => {
+    try {
+      const { trackingId } = req.params;
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ error: "Missing required field: status" });
+      }
+
+      // Find the shipment document
+      const q = query(collection(db, "shipments"), where("trackingId", "==", trackingId));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        return res.status(404).json({ error: "Shipment not found" });
+      }
+
+      const docRef = snap.docs[0].ref;
+      await updateDoc(docRef, { status });
+
+      // Also update publicTrackingData
+      try {
+        const pubRef = doc(db, "publicTrackingData", trackingId);
+        await updateDoc(pubRef, { status, updatedAt: new Date() });
+      } catch (_) { /* non-critical */ }
+
+      return res.json({ success: true, tracking_id: trackingId, status });
+    } catch (error) {
+      console.error("[API v1] Error updating shipment status:", error);
+      return res.status(500).json({ error: "Failed to update status" });
     }
   });
 

@@ -614,6 +614,77 @@ export class FirebaseStorage extends MemStorage {
     return undefined;
   }
 
+  async createApiShipment(data: {
+    senderName: string;
+    senderPhone: string;
+    senderAddress: string;
+    receiverName: string;
+    receiverPhone: string;
+    receiverAddress: string;
+    originEmirate: string;
+    destinationEmirate: string;
+    serviceType: string;
+    parcelWeight?: number;
+    amountPaid?: number;
+    notes?: string;
+    shipmentMode?: "standard" | "return";
+    linkedOrderId?: string;
+    itemName?: string;
+    itemValue?: number;
+  }): Promise<{ trackingId: string; shipmentId: string }> {
+    const trackingId = await this.generateTrackingNumber();
+    const shipmentId = randomUUID();
+    const now = new Date();
+
+    const shipmentDoc = {
+      id: shipmentId,
+      trackingId,
+      trackingNumber: trackingId,
+      senderName: data.senderName,
+      senderPhone: data.senderPhone,
+      senderAddress: data.senderAddress,
+      receiverName: data.receiverName,
+      receiverPhone: data.receiverPhone,
+      receiverAddress: data.receiverAddress,
+      originEmirate: data.originEmirate,
+      destinationEmirate: data.destinationEmirate,
+      serviceType: data.serviceType,
+      parcelWeight: data.parcelWeight ?? 0,
+      amountPaid: data.amountPaid ?? 0,
+      notes: data.notes ?? null,
+      shipmentMode: data.shipmentMode ?? "standard",
+      linkedOrderId: data.linkedOrderId ?? null,
+      itemName: data.itemName ?? null,
+      itemValue: data.itemValue ?? null,
+      status: "pending",
+      createdAt: now.toISOString(),
+    };
+
+    try {
+      const { setDoc, doc: fsDoc } = await import("firebase/firestore");
+      await setDoc(fsDoc(db, "shipments", shipmentId), shipmentDoc);
+      await setDoc(fsDoc(db, "publicTrackingData", trackingId), {
+        trackingId,
+        status: "pending",
+        originEmirate: data.originEmirate,
+        destinationEmirate: data.destinationEmirate,
+        senderName: data.senderName,
+        receiverName: data.receiverName,
+        weight: data.parcelWeight ?? 0,
+        shipmentMode: data.shipmentMode ?? "standard",
+        linkedOrderId: data.linkedOrderId ?? null,
+        itemName: data.itemName ?? null,
+        updatedAt: now,
+      });
+      console.log(`[API] Created shipment ${trackingId}`);
+    } catch (e) {
+      console.error("[API] Error creating shipment in Firebase:", e);
+      throw e;
+    }
+
+    return { trackingId, shipmentId };
+  }
+
   async generateTrackingNumber(): Promise<string> {
     // Hardcoded pattern as per user request
     const pattern = 'GC{day}{random}{month}AE';

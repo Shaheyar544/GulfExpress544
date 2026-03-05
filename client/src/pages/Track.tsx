@@ -20,6 +20,10 @@ interface TrackingResult {
   receiverCountry: string;
   weight: number;
   estimatedDelivery: string;
+  shipmentMode?: "standard" | "return";
+  linkedOrderId?: string | null;
+  itemName?: string | null;
+  itemValue?: number | null;
   timeline: {
     status: string;
     location: string;
@@ -151,6 +155,10 @@ export default function Track() {
             year: 'numeric'
           })
           : "Pending",
+        shipmentMode: trackingData.shipmentMode || "standard",
+        linkedOrderId: trackingData.linkedOrderId || null,
+        itemName: trackingData.itemName || null,
+        itemValue: trackingData.itemValue || null,
         timeline,
       });
     } catch (err: any) {
@@ -418,6 +426,29 @@ export default function Track() {
 
             {result && (
               <div className="space-y-6" data-testid="tracking-result">
+                {/* Return Shipment Banner */}
+                {result.shipmentMode === "return" && (
+                  <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-xl p-5 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-800 flex items-center justify-center flex-shrink-0">
+                      <RefreshCw className="w-5 h-5 text-orange-600 dark:text-orange-300" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-orange-900 dark:text-orange-200 text-sm uppercase tracking-wide mb-1">Return Shipment</p>
+                      {result.linkedOrderId && (
+                        <p className="text-sm text-orange-800 dark:text-orange-300">
+                          <span className="font-medium">Order ID:</span> {result.linkedOrderId}
+                        </p>
+                      )}
+                      {result.itemName && (
+                        <p className="text-sm text-orange-800 dark:text-orange-300">
+                          <span className="font-medium">Item:</span> {result.itemName}
+                          {result.itemValue ? ` — AED ${result.itemValue.toFixed(2)}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <Card className="overflow-visible p-0 border-0 shadow-xl">
                   <div className="p-6 bg-gradient-purple text-white">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
