@@ -50,21 +50,16 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// 3. CORS — open for external API routes (/api/v1/ and /api/shipments)
-// because OrderFlow Pro Electron app sends requests with a null/custom origin
+// 3. CORS — open for all /api/* routes (external apps + internal)
 app.use((req, res, next) => {
-  const isExternalApiRoute =
-    req.path.startsWith("/api/v1/") || req.path.startsWith("/api/shipments");
-
-  if (isExternalApiRoute) {
+  if (req.path.startsWith("/api/")) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key, Authorization");
     if (req.method === "OPTIONS") return res.status(200).end();
     return next();
   }
-
-  // Restrictive CORS for all other routes (website pages / standard API)
+  // Restrictive CORS for non-API routes (web pages)
   cors({
     origin: process.env.NODE_ENV === "production"
       ? "https://gulfexpress.org"
@@ -111,19 +106,11 @@ app.use((req, res, next) => {
 });
 
 // 7. Routes (CSRF Token & Auth)
-app.get("/api/csrf-token", (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
+// NOTE: /csrf-token is NOT under /api/ so it correctly goes through csrfProtection
+app.get("/csrf-token", csrfProtection as any, (req, res) => {
+  res.json({ csrfToken: (req as any).csrfToken() });
 });
 app.use(authRoutes);
-
-
-// 8. CSRF Error Handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  if (err.code === "EBADCSRFTOKEN") {
-    return res.status(403).json({ error: "Invalid or missing CSRF token" });
-  }
-  next(err);
-});
 
 export function log(message: string, source = "express") {
   logger.info(`[${source}] ${message}`);
@@ -157,6 +144,15 @@ app.use((req, res, next) => {
 
 (async () => {
   await registerRoutes(httpServer, app);
+
+  // 8. CSRF Error Handler — must be AFTER registerRoutes so it only
+  // catches errors from non-API routes that actually use csrfProtection
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    if (err.code === "EBADCSRFTOKEN") {
+      return res.status(403).json({ error: "Invalid or missing CSRF token" });
+    }
+    next(err);
+  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
