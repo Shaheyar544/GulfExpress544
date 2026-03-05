@@ -209,3 +209,79 @@ export interface Testimonial {
   rating: number;
   avatar?: string;
 }
+
+// ── VAT Receipt System ───────────────────────────────────────
+
+export interface LineItem {
+  description: string;
+  detail: string;
+  quantity: number;
+  unitPrice: number;
+  discount: number; // percentage
+  vatAmount: number;
+  total: number;
+}
+
+export interface Receipt {
+  receiptId: string; // e.g., receipt_RCP_2026_004721
+  receiptNumber: string; // e.g., RCP-2026-004721
+  trackingId: string;
+  shipmentId: string;
+  issueDate: Date | string; // Handled as Timestamp/ISO in Firestore
+  supplyDate: Date | string;
+  currency: "AED";
+
+  // Company details
+  companyName: string;
+  companyAddress: string;
+  companyTRN: string;
+  companyVATReg: string;
+  companyEmail: string;
+  companyPhone: string;
+  companyWeb: string;
+
+  // Customer details (Bill To)
+  customerName: string;
+  customerAddress: string;
+  customerPhone: string;
+  customerEmail: string;
+
+  // Sender details (Same as Bill To)
+  senderName: string;
+  senderPhone: string;
+  senderAddress: string;
+
+  // Receiver details (To)
+  receiverName: string;
+  receiverPhone: string;
+  receiverAddress: string;
+
+  // Shipment details
+  originEmirate: string;
+  destinationEmirate: string;
+  serviceType: string;
+  parcelWeight: number;
+  shipmentMode: string;
+
+  lineItems: LineItem[];
+
+  // Financials
+  subtotalExVAT: number;
+  discountAmount: number;
+  vatRate: number; // e.g., 5
+  vatAmount: number;
+  grandTotal: number;
+  amountInWords: string;
+
+  // Payment
+  paymentMethod: string; // "Credit Card" | "Cash" | "Bank Transfer" | "COD"
+  paymentRef: string;
+  paymentStatus: "paid" | "unpaid" | "partial";
+
+  // Meta
+  pdfPath: string;
+  generatedBy: string;
+  generatedAt: Date | string;
+  status: "active" | "voided" | "credited";
+  voidReason?: string;
+}
