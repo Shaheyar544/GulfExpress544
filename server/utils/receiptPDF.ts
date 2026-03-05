@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import { renderReceiptHTML } from "./receiptTemplate.js";
+import { renderReceiptHTML } from "./receiptTemplate";
 import type { Receipt } from "@shared/schema";
 import path from "path";
 import fs from "fs";
