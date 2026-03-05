@@ -641,11 +641,14 @@ export class FirebaseStorage extends MemStorage {
       trackingId,
       trackingNumber: trackingId,
       senderName: data.senderName,
-      senderPhone: data.senderPhone,
-      senderAddress: data.senderAddress,
+      senderPhone: data.senderPhone || "",
+      senderAddress: data.senderAddress || "",
+      senderCity: data.originEmirate,
       receiverName: data.receiverName,
-      receiverPhone: data.receiverPhone,
-      receiverAddress: data.receiverAddress,
+      receiverPhone: data.receiverPhone || "",
+      receiverAddress: data.receiverAddress || "",
+      receiverCity: data.destinationEmirate,
+      receiverCountry: "UAE",
       originEmirate: data.originEmirate,
       destinationEmirate: data.destinationEmirate,
       serviceType: data.serviceType,
@@ -658,32 +661,31 @@ export class FirebaseStorage extends MemStorage {
       itemValue: data.itemValue ?? null,
       status: "pending",
       createdAt: now.toISOString(),
+      source: "orderflow-pro",
     };
 
-    try {
-      const { setDoc, doc: fsDoc } = await import("firebase/firestore");
-      await setDoc(fsDoc(db, "shipments", shipmentId), shipmentDoc);
-      await setDoc(fsDoc(db, "publicTrackingData", trackingId), {
-        trackingId,
-        status: "pending",
-        originEmirate: data.originEmirate,
-        destinationEmirate: data.destinationEmirate,
-        senderName: data.senderName,
-        receiverName: data.receiverName,
-        weight: data.parcelWeight ?? 0,
-        shipmentMode: data.shipmentMode ?? "standard",
-        linkedOrderId: data.linkedOrderId ?? null,
-        itemName: data.itemName ?? null,
-        updatedAt: now,
-      });
-      console.log(`[API] Created shipment ${trackingId}`);
-    } catch (e) {
-      console.error("[API] Error creating shipment in Firebase:", e);
-      throw e;
-    }
+    // Use static imports (already imported at top of FirebaseStorage section)
+    await setDoc(doc(db, "shipments", shipmentId), shipmentDoc);
 
+    await setDoc(doc(db, "publicTrackingData", trackingId), {
+      trackingId,
+      status: "pending",
+      originEmirate: data.originEmirate,
+      destinationEmirate: data.destinationEmirate,
+      senderName: data.senderName,
+      receiverName: data.receiverName,
+      weight: data.parcelWeight ?? 0,
+      shipmentMode: data.shipmentMode ?? "standard",
+      linkedOrderId: data.linkedOrderId ?? null,
+      itemName: data.itemName ?? null,
+      updatedAt: now,
+      createdAt: now,
+    });
+
+    console.log(`[API] Created shipment ${trackingId} in Firestore`);
     return { trackingId, shipmentId };
   }
+
 
   async generateTrackingNumber(): Promise<string> {
     // Hardcoded pattern as per user request
