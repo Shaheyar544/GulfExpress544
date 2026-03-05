@@ -50,13 +50,29 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// 3. CORS
-app.use(cors({
-  origin: process.env.NODE_ENV === "production"
-    ? 'https://gulfexpress.org'
-    : ['http://localhost:5000', 'http://127.0.0.1:5000', 'https://gulfexpress.org'],
-  credentials: true
-}));
+// 3. CORS — open for external API routes (/api/v1/ and /api/shipments)
+// because OrderFlow Pro Electron app sends requests with a null/custom origin
+app.use((req, res, next) => {
+  const isExternalApiRoute =
+    req.path.startsWith("/api/v1/") || req.path.startsWith("/api/shipments");
+
+  if (isExternalApiRoute) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
+    if (req.method === "OPTIONS") return res.status(200).end();
+    return next();
+  }
+
+  // Restrictive CORS for all other routes (website pages / standard API)
+  cors({
+    origin: process.env.NODE_ENV === "production"
+      ? "https://gulfexpress.org"
+      : ["http://localhost:5000", "http://127.0.0.1:5000", "https://gulfexpress.org"],
+    credentials: true,
+  })(req, res, next);
+});
+
 
 // 4. Body Parsers
 app.use(
