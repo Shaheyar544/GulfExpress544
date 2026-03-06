@@ -7,7 +7,7 @@ import { db } from "./firebase";
 import { doc, getDoc, collection, getDocs, query, where, updateDoc, orderBy, limit, setDoc } from "firebase/firestore";
 import { apiKeyMiddleware } from "./middleware/apiKeyMiddleware";
 import { generateReceiptNumber, buildLineItems, loadCompanyConfig, numberToWords } from "./utils/receiptHelpers";
-import { generateReceiptPDFBuffer } from "./utils/receiptPDF";
+import { generateReceiptClientDownload } from "./utils/receiptPDF";
 import { type Receipt } from "@shared/schema";
 import fs from "fs";
 import nodemailer from "nodemailer";
@@ -731,11 +731,10 @@ export async function registerRoutes(
       const receiptData = snap.docs[0].data() as Receipt;
       const company = await loadCompanyConfig();
 
-      const pdfBuffer = await generateReceiptPDFBuffer(receiptData, company);
+      const htmlPayload = await generateReceiptClientDownload(receiptData, company);
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename="${receiptNumber}.pdf"`);
-      res.send(pdfBuffer);
+      res.setHeader("Content-Type", "text/html");
+      res.send(htmlPayload);
     } catch (error: any) {
       console.error("[ReceiptPDF] Error generating PDF:", error);
       res.status(500).json({

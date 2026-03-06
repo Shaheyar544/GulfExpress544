@@ -1,39 +1,95 @@
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import { renderReceiptHTML } from "./receiptTemplate.js";
 import type { Receipt } from "@shared/schema";
 
-export async function generateReceiptPDFBuffer(receipt: Receipt, company: any): Promise<Buffer> {
-    const html = renderReceiptHTML(receipt, company);
+export async function generateReceiptClientDownload(receipt: Receipt, company: any): Promise<string> {
+    const rawHtml = renderReceiptHTML(receipt, company);
 
-    // Launch serverless Chromium
-    const sparticuz: any = chromium;
-    const browser = await puppeteer.launch({
-        args: sparticuz.args,
-        defaultViewport: sparticuz.defaultViewport,
-        executablePath: await sparticuz.executablePath(),
-        headless: sparticuz.headless,
-        ignoreHTTPSErrors: true,
-    } as any);
+    // We wrap the raw HTML in a generic full-page loader that automatically 
+    // invokes html2pdf.js to force download the PDF on the client's local device.
+    // This perfectly bypasses all Vercel/cPanel EACCES Chromium restrictions.
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloading Receipt ${receipt.receiptNumber}...</title>
+    <!-- Include html2pdf.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        #loader-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 255, 255, 0.95); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #6d28d9;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        h2 { color: #0f172a; margin: 0 0 8px 0; }
+        p { color: #64748b; margin: 0; }
+        
+        /* The printable container needs exact A4 styles for html2pdf to scale it */
+        #printable-receipt {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            padding: 0; /* padding is handled inside template */
+        }
+    </style>
+</head>
+<body>
+    <div id="loader-screen">
+        <div class="spinner" id="spin-icon"></div>
+        <h2 id="status-title">Generating your PDF...</h2>
+        <p id="status-sub">Please wait while we prepare Receipt ${receipt.receiptNumber}</p>
+        
+        <button id="close-btn" style="display:none; margin-top:24px; padding:10px 24px; background:#6d28d9; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;" onclick="window.close()">
+            Close Window
+        </button>
+    </div>
 
-    const page = await browser.newPage();
+    <!-- The physical receipt rendered off-screen (but still in DOM) to be captured -->
+    <div style="position: absolute; top: 0; left: -9999px;">
+        <div id="printable-receipt">
+            ${rawHtml}
+        </div>
+    </div>
 
-    // Pass raw HTML directly rather than resolving a local temp file URL, which also 
-    // bypasses tricky Vercel local filesystem read-locks
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    <script>
+        window.onload = function() {
+            const element = document.getElementById('printable-receipt');
+            const receiptName = 'Receipt_${receipt.receiptNumber}.pdf';
 
-    // Inject custom print margins CSS explicitly
-    await page.addStyleTag({ content: '@page { size: auto; margin: 0mm; } body { margin: 0; }' });
+            const opt = {
+                margin:       0,
+                filename:     receiptName,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-    // Generate PDF at A4 scaling directly into memory
-    const pdfUint8Array = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        scale: 0.95,
-        margin: { top: "0", bottom: "0", left: "0", right: "0" },
-    });
-
-    await browser.close();
-
-    return Buffer.from(pdfUint8Array);
+            // Start generation
+            html2pdf().set(opt).from(element).save()
+                .then(() => {
+                    document.getElementById('spin-icon').style.display = 'none';
+                    document.getElementById('status-title').innerText = 'PDF Downloaded!';
+                    document.getElementById('status-title').style.color = '#059669';
+                    document.getElementById('status-sub').innerText = 'Your receipt has been safely downloaded to your device.';
+                    document.getElementById('close-btn').style.display = 'block';
+                })
+                .catch(err => {
+                    document.getElementById('spin-icon').style.display = 'none';
+                    document.getElementById('status-title').innerText = 'Error Generating PDF';
+                    document.getElementById('status-title').style.color = '#dc2626';
+                    document.getElementById('status-sub').innerText = err.message || 'There was a problem preparing the file.';
+                });
+        };
+    </script>
+</body>
+</html>
+    `;
 }
