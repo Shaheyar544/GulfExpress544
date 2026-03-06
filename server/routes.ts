@@ -738,7 +738,11 @@ export async function registerRoutes(
       res.send(pdfBuffer);
     } catch (error: any) {
       console.error("[ReceiptPDF] Error generating PDF:", error);
-      res.status(500).json({ error: "Failed to generate PDF document" });
+      res.status(500).json({
+        error: "Failed to generate PDF document",
+        detail: error.message || String(error),
+        stack: error.stack
+      });
     }
   });
 
