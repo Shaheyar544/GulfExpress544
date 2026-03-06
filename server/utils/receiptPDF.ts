@@ -2,28 +2,19 @@ import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { renderReceiptHTML } from "./receiptTemplate.js";
 import type { Receipt } from "@shared/schema";
-import path from "path";
-import fs from "fs";
 
-const RECEIPTS_DIR = path.join(process.cwd(), "generated_receipts");
-
-// Ensure the directory exists
-if (!fs.existsSync(RECEIPTS_DIR)) {
-    fs.mkdirSync(RECEIPTS_DIR, { recursive: true });
-}
-
-export async function generateReceiptPDF(receipt: Receipt, company: any): Promise<string> {
+export async function generateReceiptPDFBuffer(receipt: Receipt, company: any): Promise<Buffer> {
     const html = renderReceiptHTML(receipt, company);
-    const outputPath = path.join(RECEIPTS_DIR, `${receipt.receiptNumber}.pdf`);
 
     // Launch serverless Chromium
+    const sparticuz: any = chromium;
     const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        args: sparticuz.args,
+        defaultViewport: sparticuz.defaultViewport,
+        executablePath: await sparticuz.executablePath(),
+        headless: sparticuz.headless,
         ignoreHTTPSErrors: true,
-    });
+    } as any);
 
     const page = await browser.newPage();
 
@@ -34,9 +25,8 @@ export async function generateReceiptPDF(receipt: Receipt, company: any): Promis
     // Inject custom print margins CSS explicitly
     await page.addStyleTag({ content: '@page { size: auto; margin: 0mm; } body { margin: 0; }' });
 
-    // Generate PDF at A4 scaling 
-    await page.pdf({
-        path: outputPath,
+    // Generate PDF at A4 scaling directly into memory
+    const pdfUint8Array = await page.pdf({
         format: "A4",
         printBackground: true,
         scale: 0.95,
@@ -45,5 +35,5 @@ export async function generateReceiptPDF(receipt: Receipt, company: any): Promis
 
     await browser.close();
 
-    return outputPath;
+    return Buffer.from(pdfUint8Array);
 }

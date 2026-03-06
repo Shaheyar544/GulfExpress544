@@ -7,7 +7,7 @@ import { db } from "./firebase";
 import { doc, getDoc, collection, getDocs, query, where, updateDoc, orderBy, limit, setDoc } from "firebase/firestore";
 import { apiKeyMiddleware } from "./middleware/apiKeyMiddleware";
 import { generateReceiptNumber, buildLineItems, loadCompanyConfig, numberToWords } from "./utils/receiptHelpers";
-import { generateReceiptPDF } from "./utils/receiptPDF";
+import { generateReceiptPDFBuffer } from "./utils/receiptPDF";
 import { type Receipt } from "@shared/schema";
 import fs from "fs";
 import nodemailer from "nodemailer";
@@ -694,9 +694,8 @@ export async function registerRoutes(
         status: "active",
       };
 
-      // 7. Generate PDF using Playwright
-      const pdfPath = await generateReceiptPDF(receipt, company);
-      receipt.pdfPath = pdfPath;
+      // 7. Store PDF URL (generation happens on-the-fly to support Vercel Serverless read-only limits and timeouts)
+      receipt.pdfPath = `/api/receipts/${receiptNumber}/pdf`;
 
       // 8. Save receipt to Firestore
       await setDoc(doc(db, "receipts", receiptId), receipt);
@@ -723,19 +722,24 @@ export async function registerRoutes(
   });
 
   app.get("/api/receipts/:receiptNumber/pdf", async (req, res) => {
-    const { receiptNumber } = req.params;
-    const q = query(collection(db, "receipts"), where("receiptNumber", "==", receiptNumber));
-    const snap = await getDocs(q);
-    if (snap.empty) return res.status(404).json({ error: "Receipt not found" });
+    try {
+      const { receiptNumber } = req.params;
+      const q = query(collection(db, "receipts"), where("receiptNumber", "==", receiptNumber));
+      const snap = await getDocs(q);
+      if (snap.empty) return res.status(404).json({ error: "Receipt not found" });
 
-    const { pdfPath } = snap.docs[0].data();
-    if (!pdfPath || !fs.existsSync(pdfPath)) {
-      return res.status(404).json({ error: "PDF file not found — please regenerate" });
+      const receiptData = snap.docs[0].data() as Receipt;
+      const company = await loadCompanyConfig();
+
+      const pdfBuffer = await generateReceiptPDFBuffer(receiptData, company);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${receiptNumber}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error: any) {
+      console.error("[ReceiptPDF] Error generating PDF:", error);
+      res.status(500).json({ error: "Failed to generate PDF document" });
     }
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${receiptNumber}.pdf"`);
-    fs.createReadStream(pdfPath).pipe(res);
   });
 
   app.get("/api/receipts/shipment/:trackingId", async (req, res) => {
