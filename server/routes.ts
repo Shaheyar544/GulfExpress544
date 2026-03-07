@@ -4,7 +4,7 @@ import { storage, calculatePrice, getEstimatedDelivery } from "./storage";
 import { insertQuotationSchema, insertContactMessageSchema, insertBookingSchema, insertNewsletterSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./firebase";
-import { doc, getDoc, collection, getDocs, query, where, updateDoc, orderBy, limit, setDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where, updateDoc, orderBy, limit, setDoc, addDoc } from "firebase/firestore";
 import { apiKeyMiddleware } from "./middleware/apiKeyMiddleware";
 import { generateReceiptNumber, buildLineItems, loadCompanyConfig, numberToWords } from "./utils/receiptHelpers";
 import { generateReceiptClientDownload } from "./utils/receiptPDF";
@@ -1065,6 +1065,41 @@ export async function registerRoutes(
     } catch (error) {
       console.error('Login Setup Error:', error);
       return res.status(500).json({ error: 'Internal server error during login' });
+    }
+  });
+
+  // ============================================================================
+  // TEMPORARY: Database Seeder for OrderFlow License
+  // ============================================================================
+  app.get('/api/admin/seed-orderflow-license', async (req, res) => {
+    try {
+      const licensesRef = collection(db, 'orderflow_licenses');
+      const docRef = await addDoc(licensesRef, {
+        licenseKey: "GFX-OFP-2026-xK9mN3qR7vL2wP8tY4jD",
+        email: "shaheryarahmed.awan@gmail.com",
+        password: "password123",
+        assignedTo: "Shaheryar Ahmed",
+        status: "active",
+        spreadsheetId: "1jGkc9VBMmuUVnHAscmloTu8W9LwyuTL5mZNGWOT4z_o",
+        permissions: {
+          canGenerateInvoices: true
+        }
+      });
+
+      res.status(200).send(`
+            <h1>✅ SUCCESS! License Created Successfully!</h1>
+            <p><strong>Document ID:</strong> ${docRef.id}</p>
+            <hr />
+            <h3>Your OrderFlow Desktop App Login:</h3>
+            <ul>
+                <li><strong>Email:</strong> shaheryarahmed.awan@gmail.com</li>
+                <li><strong>Password:</strong> password123</li>
+                <li><strong>License Key:</strong> GFX-OFP-2026-xK9mN3qR7vL2wP8tY4jD</li>
+            </ul>
+        `);
+    } catch (error: any) {
+      console.error('Seeding Error:', error);
+      res.status(500).send(`<h1>❌ Error Seeding Database</h1><p>${error.message}</p>`);
     }
   });
 
