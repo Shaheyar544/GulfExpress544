@@ -978,6 +978,96 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================================================
+  // 1. ORDERFLOW PRO: Validate License (GET)
+  // Used silently when the desktop app starts up to ensure the license is active.
+  // ============================================================================
+  app.get('/api/orderflow/validate-license', async (req, res) => {
+    try {
+      const licenseKey = req.query.license_key;
+
+      if (!licenseKey || typeof licenseKey !== 'string') {
+        return res.status(400).json({ error: 'License key is required' });
+      }
+
+      // Query the 'orderflow_licenses' collection in Firestore
+      const q = query(collection(db, "orderflow_licenses"), where("licenseKey", "==", licenseKey));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return res.status(403).json({ error: 'Invalid or revoked license key' });
+      }
+
+      const licenseDoc = snapshot.docs[0].data();
+
+      // Check if the license is active
+      if (licenseDoc.status !== 'active') {
+        return res.status(403).json({ error: 'This license has been suspended or deactivated.' });
+      }
+
+      return res.status(200).json({
+        valid: true,
+        assignedTo: licenseDoc.assignedTo,
+        email: licenseDoc.email,
+        permissions: licenseDoc.permissions || { canGenerateInvoices: true }
+      });
+    } catch (error) {
+      console.error('License Validation Error:', error);
+      return res.status(500).json({ error: 'Internal server error while validating license' });
+    }
+  });
+
+  // ============================================================================
+  // 2. ORDERFLOW PRO: Login/Setup (POST)
+  // Used heavily by the green "Validate & Connect" button in the Setup Wizard
+  // ============================================================================
+  app.post('/api/orderflow/login', async (req, res) => {
+    try {
+      const { email, password, license_key } = req.body;
+
+      if (!email || !password || !license_key) {
+        return res.status(400).json({ error: 'Email, password, and license key are required' });
+      }
+
+      // 1. Validate the License Key first
+      const q = query(collection(db, "orderflow_licenses"), where("licenseKey", "==", license_key));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return res.status(403).json({ error: 'Invalid license key provided' });
+      }
+
+      const licenseDoc = snapshot.docs[0].data();
+
+      // 2. Verify the Email matches the license
+      if (licenseDoc.email.toLowerCase() !== email.toLowerCase()) {
+        return res.status(403).json({ error: 'Email does not match the registered license' });
+      }
+
+      // 3. Verify the Password
+      // IMPORTANT: In production, licenseDoc.password SHOULD be hashed.
+      if (licenseDoc.password !== password) {
+        return res.status(401).json({ error: 'Incorrect password' });
+      }
+
+      if (licenseDoc.status !== 'active') {
+        return res.status(403).json({ error: 'This license is currently inactive' });
+      }
+
+      // 4. Return the required success payload to the Desktop App
+      return res.status(200).json({
+        message: 'Authentication successful',
+        assignedTo: licenseDoc.assignedTo,
+        email: licenseDoc.email,
+        spreadsheetId: licenseDoc.spreadsheetId,
+        permissions: licenseDoc.permissions || { canGenerateInvoices: true }
+      });
+    } catch (error) {
+      console.error('Login Setup Error:', error);
+      return res.status(500).json({ error: 'Internal server error during login' });
+    }
+  });
+
   return httpServer;
 }
 
