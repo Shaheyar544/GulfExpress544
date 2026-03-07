@@ -124,7 +124,7 @@ export default function Quotations() {
                 <TableRow key={quote.id}>
                   <TableCell>
                     {quote.createdAt?.toDate?.()
-                      ? new Date(quote.createdAt.toDate()).toLocaleDateString()
+                      ? new Date(typeof quote.createdAt?.toDate === 'function' ? quote.createdAt.toDate() : quote.createdAt).toLocaleDateString()
                       : "N/A"}
                   </TableCell>
                   <TableCell className="font-medium">{quote.senderName || "N/A"}</TableCell>
@@ -151,8 +151,8 @@ export default function Quotations() {
                         quote.status === "approved"
                           ? "default"
                           : quote.status === "rejected"
-                          ? "destructive"
-                          : "outline"
+                            ? "destructive"
+                            : "outline"
                       }
                     >
                       {quote.status || "pending"}

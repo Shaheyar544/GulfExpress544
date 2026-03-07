@@ -42,28 +42,28 @@ export default function Inbox() {
   const fetchInquiries = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch all inquiries from Firestore
       const inquiriesCollection = collection(db, "inquiries");
       const snapshot = await getDocs(inquiriesCollection);
-      
+
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Inquiry[];
-      
+
       // Sort client-side by timestamp (newest first)
       const sortedData = data.sort((a, b) => {
         const aDate = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : 0;
         const bDate = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : 0;
         return bDate - aDate; // Descending order (newest first)
       });
-      
+
       setInquiries(sortedData);
-      
+
       // Log for debugging
       console.log(`Successfully fetched ${sortedData.length} inquiries`);
-      
+
       if (sortedData.length === 0) {
         console.warn("No inquiries found in Firestore collection 'inquiries'");
       }
@@ -71,7 +71,7 @@ export default function Inbox() {
       console.error("Error fetching inquiries:", error);
       const errorMessage = error?.message || "Unknown error";
       const errorCode = error?.code || "";
-      
+
       toast({
         title: "Error",
         description: errorCode === "permission-denied"
@@ -96,7 +96,7 @@ export default function Inbox() {
   const formatDate = (timestamp: any) => {
     if (!timestamp) return "N/A";
     if (timestamp.toDate) {
-      return new Date(timestamp.toDate()).toLocaleDateString("en-US", {
+      return new Date(typeof timestamp?.toDate === 'function' ? timestamp.toDate() : timestamp).toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",

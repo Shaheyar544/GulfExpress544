@@ -254,7 +254,7 @@ export default function Users() {
                   </TableCell>
                   <TableCell>
                     {admin.createdAt?.toDate?.()
-                      ? new Date(admin.createdAt.toDate()).toLocaleDateString()
+                      ? new Date(typeof admin.createdAt?.toDate === 'function' ? admin.createdAt.toDate() : admin.createdAt).toLocaleDateString()
                       : "N/A"}
                   </TableCell>
                   <TableCell>

@@ -69,7 +69,12 @@ export default function Dashboard() {
 
       shipments.forEach((shipment: any) => {
         if (shipment.createdAt) {
-          const date = shipment.createdAt.toDate();
+          let date: Date;
+          if (typeof shipment.createdAt.toDate === 'function') {
+            date = shipment.createdAt.toDate();
+          } else {
+            date = new Date(shipment.createdAt);
+          }
           const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
           if (monthlyMap.has(monthKey)) {
             monthlyMap.set(monthKey, monthlyMap.get(monthKey) + 1);

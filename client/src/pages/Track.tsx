@@ -148,7 +148,7 @@ export default function Track() {
         receiverCountry: "UAE",
         weight: trackingData.weight || 0,
         estimatedDelivery: trackingData.updatedAt
-          ? new Date(trackingData.updatedAt.toDate()).toLocaleDateString('en-US', {
+          ? new Date(typeof trackingData.updatedAt?.toDate === 'function' ? trackingData.updatedAt.toDate() : trackingData.updatedAt).toLocaleDateString('en-US', {
             weekday: 'short',
             month: 'short',
             day: 'numeric',

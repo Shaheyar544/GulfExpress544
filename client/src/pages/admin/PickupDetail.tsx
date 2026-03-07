@@ -123,19 +123,15 @@ export default function PickupDetail() {
       }
 
       // Request Date
-      const requestDate = pickup.createdAt?.toDate
-        ? pickup.createdAt.toDate().toLocaleDateString("en-US", {
+      const requestDate = pickup.createdAt
+        ? new Date(typeof pickup.createdAt?.toDate === 'function' ? pickup.createdAt.toDate() : pickup.createdAt).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
           hour: "2-digit",
           minute: "2-digit"
         })
-        : new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        });
+        : "N/A";
       doc.text(`Request Date & Time: ${requestDate}`, 20, yPos);
       yPos += 7;
 
@@ -296,8 +292,8 @@ export default function PickupDetail() {
               <div>
                 <Label className="text-gray-500">Request Date</Label>
                 <div className="mt-1">
-                  {pickup.createdAt?.toDate
-                    ? new Date(pickup.createdAt.toDate()).toLocaleDateString("en-US", {
+                  {pickup.createdAt
+                    ? new Date(typeof pickup.createdAt?.toDate === 'function' ? pickup.createdAt.toDate() : pickup.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "short",
                       day: "numeric",
